@@ -1,39 +1,13 @@
-const products = [
-  {
-    id: 1,
-    title: "Baby Yoda",
-    price: 19.99,
-    description:
-      "A cute Baby Yoda plush toy, perfect for fans of The Mandalorian. Soft, cuddly, and ideal for display or play.",
-    image: "img/baby-yoda.svg",
-  },
-  {
-    id: 2,
-    title: "Banana",
-    price: 17.99,
-    description:
-      "Fresh banana from Ecuador, rich in potassium and flavor. Great for snacks, smoothies, or a healthy breakfast.",
-    image: "img/banana.svg",
-  },
-  {
-    id: 3,
-    title: "Girl",
-    price: 18.99,
-    description:
-      "Sticker with a vibrant girl illustration, ideal for decorating laptops, notebooks, or water bottles. Durable and waterproof.",
-    image: "img/girl.svg",
-  },
-  {
-    id: 4,
-    title: "Viking",
-    price: 15.99,
-    description:
-      "Sticker with Viking illustration, featuring bold colors and intricate details. Perfect for history enthusiasts and collectors.",
-    image: "img/viking.svg",
-  },
-];
+const response = await fetch("api/products.json");
+const products = await response.json();
+renderProducts(products);
 
-function renderProducts(products) {
+// fetch('api/products.json')
+//  .then(response => response.json())
+//  .then(products => renderProducts(products))
+//  .catch(err => console.error(err.message));
+
+function renderProducts(products, rate = 1) {
   let productsHTML = [];
   for (const product of products) {
     productsHTML.push(
@@ -48,7 +22,7 @@ function renderProducts(products) {
                         Info
                     </button>
                     <button class="products__button products__button--buy button button-card">
-                        Buy - ${product.price.toFixed(2)}
+                        Buy - ${(product.price * rate).toFixed(2)}
                     </button>
                 </div>
             </article>
@@ -59,4 +33,21 @@ function renderProducts(products) {
   productsContainer.innerHTML = productsHTML.join("");
 }
 
-renderProducts(products);
+let currencies;
+async function changeCurrency() {
+  if (!currencies) {
+    const response = await fetch(
+      "https://api.exchangerate-api.com/v4/latest/USD"
+    );
+    currencies = await response.json();
+  }
+  const userSelectedCurrency = document.querySelector(
+    ".products__currency"
+  ).value;
+  const rate = currencies.rates[userSelectedCurrency];
+  renderProducts(products, rate);
+}
+
+document
+  .querySelector(".products__currency")
+  .addEventListener("change", changeCurrency);
